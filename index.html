@@ -1,0 +1,105 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Analyse of TYPO3 Version changes</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+
+        <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="https://code.highcharts.com/highcharts.js"></script>
+        <script src="https://code.highcharts.com/modules/exporting.js"></script>
+        <script type="text/javascript">
+$(function () {
+    // Get the CSV and create the chart
+    $.getJSON('./typo3Docs.json', function (json) {
+        // TODO: Format json result
+        json.sort(function(a, b) {
+            var version1 = parseFloat(a.version[0].substr(0, 3)),
+                version2 = parseFloat(b.version[0].substr(0, 3));
+            if (version1 > version2) {
+                return 1;
+            }
+            if (version1 < version2) {
+                return -1;
+            }
+            return 0;
+        });
+
+        var xAxisCategories = [],
+            types = {},
+            series = [];
+
+        $.each(json, function() {
+            var version = this.version[0];
+            xAxisCategories.push(version);
+            $.each(this.changes, function(typeOfChange) {
+                // Collect all existing types.
+                if (typeof types[typeOfChange] === 'undefined') {
+                    types[typeOfChange] = [];
+                }
+            });
+        });
+
+        $.each(json, function() {
+            var changesInVersion = this.changes;
+            $.each(types, function(type) {
+                if (typeof changesInVersion[type] === 'undefined') {
+                    types[type].push(0);
+                } else {
+                    types[type].push(changesInVersion[type]);
+                }
+            });
+        });
+
+        $.each(types, function(type) {
+            series.push({
+                name: type,
+                data: this
+            });
+        });
+
+        $('#container').highcharts({
+            chart: {
+                type: 'area'
+            },
+            title: {
+                text: $('title').text()
+            },
+            subtitle: {
+                text: 'Source: docs.typo3.org'
+            },
+            xAxis: {
+                categories: xAxisCategories,
+                tickmarkPlacement: 'on',
+                title: {
+                    enabled: false
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Changes'
+                }
+            },
+            plotOptions: {
+                area: {
+                    stacking: 'normal',
+                    lineColor: '#666666',
+                    lineWidth: 1,
+                    marker: {
+                        lineWidth: 1,
+                        lineColor: '#666666'
+                    }
+                }
+            },
+            series: series
+        });
+    });
+});
+</script>
+    </body>
+</html>
