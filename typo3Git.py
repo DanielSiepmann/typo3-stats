@@ -4,7 +4,7 @@ import scrapy
 
 
 class TYPO3GitSpider(scrapy.Spider):
-    name = 'typo3gitsionspider'
+    name = 'typo3gitspider'
     branch_information = 'https://github.com/TYPO3/TYPO3.CMS/branch_commits/'
     start_urls = [
         'https://github.com/TYPO3/TYPO3.CMS/commits/master',
