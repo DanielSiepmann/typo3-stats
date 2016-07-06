@@ -25,7 +25,8 @@ clean:
 
 .PHONY: html
 html: clean
-	scrapy runspider typo3Docs.py -o $(BUILDDIR)/typo3Docs.json
+	# scrapy runspider typo3Docs.py -o $(BUILDDIR)/typo3Docs.json
+	scrapy runspider typo3Git.py -o $(BUILDDIR)/typo3Git.json
 	cp index.html $(BUILDDIR)/index.html
 	@echo
 	@echo "Published to $(BUILDDIR)/index.html"
