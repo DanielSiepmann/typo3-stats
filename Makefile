@@ -19,13 +19,13 @@ help:
 .PHONY: install
 install:
 	pip install --user --upgrade scrapy
-	mkdir $(BUILDDIR)
-	mkdir $(PUBLISHDIR)
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILDDIR)/*
-	rm -rf $(PUBLISHDIR)/*
+	rm -rf $(BUILDDIR)
+	rm -rf $(PUBLISHDIR)
+	mkdir $(BUILDDIR)
+	mkdir $(PUBLISHDIR)
 
 .PHONY: publish
 publish:
