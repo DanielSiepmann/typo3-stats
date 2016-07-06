@@ -15,11 +15,8 @@ class TYPO3GitSpider(scrapy.Spider):
             full_url = response.urljoin(href.extract())
             yield scrapy.Request(full_url, callback=self.parse_commit_list)
 
-    # TODO: Fetch all following pages
     def parse_commit_list(self, response):
-        for href in response.css('.pagination a::attr(href)'):
-            full_url = response.urljoin(href.extract())
-            yield scrapy.Request(full_url, callback=self.parse_commit_list)
+        self.parse(response)
 
         for href in response.css('.commit-group a.sha::attr(href)'):
             full_url = response.urljoin(href.extract())
