@@ -10,42 +10,48 @@ class TYPO3GitSpider(scrapy.Spider):
         'https://github.com/TYPO3/TYPO3.CMS/commits/master',
     ]
 
+    # Parse a commit list of github
     def parse(self, response):
-        for href in response.css('.pagination a::attr(href)'):
-            full_url = response.urljoin(href.extract())
-            yield scrapy.Request(full_url, callback=self.parse_commit_list)
+        # Navigate pagination to next commit list
+        yield scrapy.Request(
+                response.urljoin(
+                    response.css('.pagination a::attr(href)')[-1].extract()
+                ),
+                callback=self.parse
+            )
 
-    def parse_commit_list(self, response):
-        self.parse(response)
-
+        # Parse commits
         for href in response.css('.commit-group a.sha::attr(href)'):
             full_url = response.urljoin(href.extract())
             yield scrapy.Request(full_url, callback=self.parse_commit_details)
 
+    # Parse a single commit detail view
     def parse_commit_details(self, response):
         title = response.css('.commit-title ::text').extract_first().strip()
-
+        sha = response.css('.sha-block .sha.user-select-contain::text')
         commit = {
             'type': self.get_commit_type(title),
             'title': title[title.rfind(']')+2:],
-            'hash': response.css('.sha-block .sha.user-select-contain::text').extract_first(),
+            'hash': sha.extract_first(),
         }
 
-        return [scrapy.Request(self.branch_information + commit['hash'], callback=self.parse_commit_branch, meta={'commit': commit})]
+        return [
+                scrapy.Request(
+                    self.branch_information + commit['hash'],
+                    callback=self.parse_commit_branch,
+                    meta={'commit': commit}
+                )
+        ]
 
+    # Parse the commit of a branch (XHR)
     def parse_commit_branch(self, response):
         commit = response.meta['commit']
+        branches = response.css('.branches-tag-list a::text').extract()
 
-        # TODO: Fix issue:
-        #    2016-07-06 17:53:23 [scrapy] ERROR: Spider error processing <GET https://github.com/TYPO3/TYPO3.CMS/branch_commits/2bc918df67213c8539a768647f279c8861aa5fa6> (
-        #    referer: https://github.com/TYPO3/TYPO3.CMS/commit/2bc918df67213c8539a768647f279c8861aa5fa6)
-        #    Traceback (most recent call last):
-        #    File "/Users/siepmann/Library/Python/2.7/lib/python/site-packages/twisted/internet/defer.py", line 588, in _runCallbacks
-        #        current.result = callback(current.result, *args, **kw)
-        #    File "/Users/siepmann/Projects/own/t3-stats/typo3Git.py", line 38, in parse_commit_branch
-        #        commit['version'] = response.css('.branches-tag-list a::text').extract()[-1][:3]
-        #    IndexError: list index out of range
-        commit['version'] = response.css('.branches-tag-list a::text').extract()[-1][:3]
+        try:
+            commit['version'] = branches[-1][:3]
+        except (IndexError):
+            commit['version'] = 'dev'
 
         return [commit]
 
