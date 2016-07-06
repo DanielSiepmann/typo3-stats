@@ -19,6 +19,8 @@ help:
 .PHONY: install
 install:
 	pip install --user --upgrade scrapy
+	mkdir $(BUILDDIR)
+	mkdir $(PUBLISHDIR)
 
 .PHONY: clean
 clean:
