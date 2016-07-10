@@ -11,9 +11,12 @@ class TYPO3GitSpider(scrapy.Spider):
     page_url = 'https://github.com/TYPO3/TYPO3.CMS/commits/master?page='
     start_urls = [
         'https://github.com/TYPO3/TYPO3.CMS/commits/master',
+        # For debugging purposes
+        # 'https://github.com/TYPO3/TYPO3.CMS/commits/master?page=50',
+        # 'https://github.com/TYPO3/TYPO3.CMS/commits/master?page=601',
+        # 'https://github.com/TYPO3/TYPO3.CMS/commit/8bd0c184357b2f211f8afba3eecc9a87e72e46d8',
     ]
 
-    # Parse a commit list of github
     def parse(self, response):
         """
         Parse the commit list e.g.
@@ -47,7 +50,6 @@ class TYPO3GitSpider(scrapy.Spider):
                     priority=50
                 )
 
-    # Parse a single commit detail view
     def parse_commit_details(self, response):
         """
         Parse the information of a single commit, e.g.
@@ -62,8 +64,9 @@ class TYPO3GitSpider(scrapy.Spider):
             'hash': sha.extract_first(),
         }
 
-        # Get version information from branch. As Github doesn't provide it
-        # inline but via XHR, we have to use this request.
+        response.meta['commit'] = commit
+
+        #  Fetch branch information (version) via XHR
         yield scrapy.Request(
             self.branch_url + commit['hash'],
             callback=self.parse_commit_branch,
@@ -72,7 +75,6 @@ class TYPO3GitSpider(scrapy.Spider):
             meta={'commit': commit}
         )
 
-    # Parse the commit of a branch (XHR)
     def parse_commit_branch(self, response):
         """
         Parse branch information for a single commit, e.g.
@@ -84,12 +86,15 @@ class TYPO3GitSpider(scrapy.Spider):
         branches = response.css('.branches-tag-list a::text').extract()
 
         try:
-            commit['version'] = branches[-1][:3]
+            branches = [
+                branch for branch in branches if branch.rfind('TYPO3_') != -1
+            ]
+            commit['version'] = branches[-1][6:]
         except (IndexError):
             # If no branch for a specifc version can be found, use "dev"
             commit['version'] = 'dev'
 
-        return [commit]
+        return commit
 
     def get_commit_type(self, title):
         """
