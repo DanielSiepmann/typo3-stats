@@ -3,7 +3,6 @@
 BUILDDIR      = build
 
 DEPLOY_HOST   = daniel-siepmann.de
-DEPLOY_PATH   = htdocs/daniel-siepmann.de
 DEPLOY_PATH   = htdocs/tmp.daniel-siepmann.de/stats/t3/versions
 
 .PHONY: help
