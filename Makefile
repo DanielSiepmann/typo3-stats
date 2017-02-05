@@ -17,7 +17,7 @@ help:
 
 .PHONY: install
 install:
-	pip install --user --upgrade scrapy
+	pip install --user --upgrade -r requirements.txt
 
 .PHONY: clean
 clean:
