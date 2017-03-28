@@ -2,8 +2,7 @@
 
 BUILDDIR      = build
 
-DEPLOY_HOST   = daniel-siepmann.de
-DEPLOY_PATH   = htdocs/tmp.daniel-siepmann.de/stats/t3/versions
+DEPLOY_PATH   = /var/www/daniel-siepmann.de/sub/tmp/htdocs/stats/t3/versions
 
 .PHONY: help
 help:
@@ -31,4 +30,10 @@ html: clean
 
 .PHONY: deploy
 deploy: clean html
-	rsync --delete -vaz $(BUILDDIR)/* $(DEPLOY_HOST):$(DEPLOY_PATH)
+	rsync --delete -vaz $(BUILDDIR)/* $(DEPLOY_PATH)
+
+.PHONY: production
+production: clean
+	scrapy runspider typo3Docs.py --loglevel WARNING -o $(BUILDDIR)/typo3Docs.json
+	cp index.html $(BUILDDIR)/index.html
+	rsync --delete -az $(BUILDDIR)/* $(DEPLOY_PATH)
